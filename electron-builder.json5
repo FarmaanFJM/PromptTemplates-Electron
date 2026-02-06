@@ -18,10 +18,10 @@
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
   },
   "win": {
+    "icon": "build/icon.ico",
     "target": [
       {
         "target": "nsis",
-        "icon": "build/icon.ico"
         "arch": [
           "x64"
         ]
