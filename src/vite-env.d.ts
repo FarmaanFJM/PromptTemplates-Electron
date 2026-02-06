@@ -7,6 +7,8 @@ declare module '*.vue' {
 }
 
 interface ElectronAPI {
+  loadTemplates(): Promise<import('./shared/defaults').AppState>
+  saveTemplates(state: import('./shared/defaults').AppState): Promise<boolean>
   listTemplates(): Promise<import('./shared/defaults').AppState>
   getTemplate(id: string): Promise<import('./shared/defaults').Template | null>
   createTemplate(template: import('./shared/defaults').Template): Promise<import('./shared/defaults').AppState>

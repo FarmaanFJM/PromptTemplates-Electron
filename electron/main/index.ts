@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
 import {
+  loadTemplates,
+  saveTemplates,
   listTemplates,
   getTemplate,
   createTemplate,
@@ -70,6 +72,8 @@ async function createWindow() {
 
 // ── IPC Handlers ──
 
+ipcMain.handle('templates:load', () => loadTemplates())
+ipcMain.handle('templates:save', (_, state) => { saveTemplates(state); return true })
 ipcMain.handle('templates:list', () => listTemplates())
 ipcMain.handle('templates:get', (_, id: string) => getTemplate(id))
 ipcMain.handle('templates:create', (_, template) => createTemplate(template))

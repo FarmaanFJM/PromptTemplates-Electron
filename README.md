@@ -44,13 +44,20 @@ Builds the Vue renderer, compiles the Electron main/preload processes, and packa
 
 ## Where Data Is Stored
 
-All template data is stored in a single JSON file at the Electron `userData` path:
+All template data is persisted in a single JSON file (`templates.json`) inside the Electron `userData` directory. This location is managed by the OS and survives app restarts and updates.
 
 | OS      | Path                                                                 |
 |---------|----------------------------------------------------------------------|
 | macOS   | `~/Library/Application Support/prompt-templates/templates.json`      |
 | Windows | `%APPDATA%\prompt-templates\templates.json`                          |
 | Linux   | `~/.config/prompt-templates/templates.json`                          |
+
+### Persistence behavior
+
+- **First run**: no file exists, so built-in default templates are shown.
+- **Subsequent runs**: the saved file is loaded; user edits, additions, and deletions persist across restarts.
+- **Corrupt file**: if `templates.json` cannot be parsed, it is renamed to `templates.json.corrupt-<timestamp>` (preserving the data for manual recovery) and defaults are loaded instead.
+- **Writes are atomic**: data is written to a temporary file first, then renamed over the target to prevent corruption from partial writes.
 
 The data schema is the same as the original browser extension:
 
@@ -75,12 +82,14 @@ The data schema is the same as the original browser extension:
 
 | Method             | Description                         |
 |--------------------|-------------------------------------|
-| `listTemplates()`  | Load full app state                 |
+| `loadTemplates()`  | Load persisted state (or defaults)  |
+| `saveTemplates(state)` | Persist full app state (atomic write) |
+| `listTemplates()`  | Load full app state (legacy alias)  |
 | `getTemplate(id)`  | Get a single template by ID         |
 | `createTemplate(t)`| Add a new template                  |
 | `updateTemplate(id, patch)` | Patch an existing template |
 | `deleteTemplate(id)` | Remove a template                 |
-| `saveState(state)` | Persist full app state              |
+| `saveState(state)` | Persist full app state (legacy alias) |
 | `importTemplates(templates)` | Bulk import templates     |
 | `exportTemplates(ids)` | Export templates by IDs          |
 | `getDataPath()`    | Get the templates.json file path    |

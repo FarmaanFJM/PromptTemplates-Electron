@@ -1,7 +1,10 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  // State operations
+  // Primary load/save API
+  loadTemplates: () => ipcRenderer.invoke('templates:load'),
+  saveTemplates: (state: unknown) => ipcRenderer.invoke('templates:save', state),
+  // Legacy/granular operations
   listTemplates: () => ipcRenderer.invoke('templates:list'),
   getTemplate: (id: string) => ipcRenderer.invoke('templates:get', id),
   createTemplate: (template: unknown) => ipcRenderer.invoke('templates:create', template),
