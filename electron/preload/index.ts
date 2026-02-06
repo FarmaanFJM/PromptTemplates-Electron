@@ -1,29 +1,20 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
-// --------- Expose some API to the Renderer process ---------
-contextBridge.exposeInMainWorld('ipcRenderer', {
-  on(...args: Parameters<typeof ipcRenderer.on>) {
-    const [channel, listener] = args
-    return ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))
-  },
-  off(...args: Parameters<typeof ipcRenderer.off>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.off(channel, ...omit)
-  },
-  send(...args: Parameters<typeof ipcRenderer.send>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.send(channel, ...omit)
-  },
-  invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.invoke(channel, ...omit)
-  },
-
-  // You can expose other APTs you need here.
-  // ...
+contextBridge.exposeInMainWorld('electronAPI', {
+  // State operations
+  listTemplates: () => ipcRenderer.invoke('templates:list'),
+  getTemplate: (id: string) => ipcRenderer.invoke('templates:get', id),
+  createTemplate: (template: unknown) => ipcRenderer.invoke('templates:create', template),
+  updateTemplate: (id: string, patch: unknown) => ipcRenderer.invoke('templates:update', id, patch),
+  deleteTemplate: (id: string) => ipcRenderer.invoke('templates:delete', id),
+  saveState: (state: unknown) => ipcRenderer.invoke('templates:save-state', state),
+  importTemplates: (templates: unknown[]) => ipcRenderer.invoke('templates:import', templates),
+  exportTemplates: (ids: string[]) => ipcRenderer.invoke('templates:export', ids),
+  getDataPath: () => ipcRenderer.invoke('templates:data-path'),
 })
 
-// --------- Preload scripts loading ---------
+// ── Loading screen ──
+
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
   return new Promise((resolve) => {
     if (condition.includes(document.readyState)) {
@@ -51,12 +42,6 @@ const safeDOM = {
   },
 }
 
-/**
- * https://tobiasahlin.com/spinkit
- * https://connoratherton.com/loaders
- * https://projects.lukehaas.me/css-loaders
- * https://matejkustec.github.io/SpinThatShit
- */
 function useLoading() {
   const className = `loaders-css__square-spin`
   const styleContent = `
@@ -105,8 +90,6 @@ function useLoading() {
     },
   }
 }
-
-// ----------------------------------------------------------------------
 
 const { appendLoading, removeLoading } = useLoading()
 domReady().then(appendLoading)
