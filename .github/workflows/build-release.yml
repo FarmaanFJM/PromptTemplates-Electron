@@ -1,0 +1,47 @@
+name: Build & Release (Windows + Linux)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build (electron-builder)
+        run: npm run build
+        env:
+          # prevents electron-builder from trying to auto-detect signing stuff
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Upload artifacts to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/**/PromptTemplates-*-Setup.exe
+            release/**/*.AppImage
+            release/**/latest.yml
+            release/**/*.blockmap
+          generate_release_notes: true
