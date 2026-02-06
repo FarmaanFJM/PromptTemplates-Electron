@@ -1,28 +1,21 @@
 {
-  "name": "electron-vue-vite",
-  "version": "28.1.0",
+  "name": "prompt-templates",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
-  "description": "Really simple Electron + Vue + Vite boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "description": "Create and reuse prompt templates with dynamic placeholders. Desktop app powered by Electron + Vue 3 + Vite.",
+  "author": "Farmaan Mohammad",
   "license": "MIT",
   "private": true,
-  "keywords": [
-    "electron",
-    "rollup",
-    "vite",
-    "vue3",
-    "vue"
-  ],
-  "debug": {
-    "env": {
-      "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344/"
-    }
-  },
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build && electron-builder",
     "preview": "vite preview"
+  },
+  "debug": {
+    "env": {
+      "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344/"
+    }
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PromptTemplates</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="layout-shell">
+        <header class="app__header">
+          <h1>PromptTemplates</h1>
+          <button id="themeToggle" class="button button--ghost" type="button">
+            Dark mode
+          </button>
+        </header>
+        <aside class="layout-shell__sidebar">
+          <div class="sidebar__header">
+            <h2>Templates</h2>
+            <button id="newTemplateButton" class="button">New</button>
+          </div>
+          <div id="templateList" class="template-list"></div>
+        </aside>
+
+        <section class="layout-shell__main">
+          <div class="overview__header">
+            <h2>Prompt Template</h2>
+          </div>
+          <label class="field">
+            <span class="field__label">Name</span>
+            <input id="templateNameInput" class="field__input" type="text" placeholder="Template name" />
+          </label>
+          <label class="field">
+            <span class="field__label">Description</span>
+            <textarea id="templateDescriptionInput" class="field__input" rows="2" placeholder="Optional description"></textarea>
+          </label>
+          <label class="field">
+            <span class="field__label">Template</span>
+            <textarea id="promptTemplateInput" class="field__input" rows="8"></textarea>
+          </label>
+          <div id="overviewInputs" class="overview-inputs"></div>
+          <div class="overview-output">
+            <h3>Rendered Prompt</h3>
+            <textarea id="renderedOutput" class="field__input" rows="8" readonly></textarea>
+          </div>
+        </section>
+
+        <section class="layout-shell__actions">
+          <div class="actions-block">
+            <h2>Actions</h2>
+            <div class="actions">
+              <button id="copyButton" class="button">Copy Prompt</button>
+              <button
+                id="deleteTemplateButton"
+                class="button"
+                type="button"
+              >
+                Delete Template
+              </button>
+            </div>
+          </div>
+          <div class="actions-block">
+            <h3>Export Template</h3>
+            <textarea
+              id="exportTemplateOutput"
+              class="field__input"
+              rows="8"
+              readonly
+            ></textarea>
+            <button id="exportCopyButton" class="button">Copy export</button>
+          </div>
+          <div class="actions-block">
+            <h3>Import Template</h3>
+            <textarea
+              id="importTemplateInput"
+              class="field__input"
+              rows="8"
+              placeholder="Paste a prompttemplate:// link"
+            ></textarea>
+            <button id="importTemplateButton" class="button">Import</button>
+            <p id="importStatus" class="muted" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+      </section>
+
+      <div id="statusMessage" class="toast" role="status" aria-live="polite"></div>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
