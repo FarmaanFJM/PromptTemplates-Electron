@@ -35,6 +35,7 @@ jobs:
         env:
           # prevents electron-builder from trying to auto-detect signing stuff
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          ELECTRON_BUILDER_PUBLISH: "never"
 
       - name: Upload artifacts to GitHub Release
         uses: softprops/action-gh-release@v2
