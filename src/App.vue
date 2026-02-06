@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import type { Template, AppState } from './shared/defaults'
-import { DEFAULT_STATE, DEFAULT_TEMPLATES } from './shared/defaults'
 import { renderTemplate, extractOverviewTokens, validateTemplateImportPayload } from './shared/templating'
 
 const api = window.electronAPI
 
 // ── State ──
-const state = ref<AppState>({ ...DEFAULT_STATE })
+const loading = ref(true)
+const state = ref<AppState>({
+  templates: [],
+  pinnedTemplatesByHost: {},
+  theme: 'light',
+  templateInputValues: {},
+  activeTemplateId: null,
+})
 const currentTemplateId = ref<string | null>(null)
 const variableValues = ref<Record<string, string>>({})
 const blockValues = ref<Record<string, string>>({})
@@ -89,7 +95,7 @@ function generateTemplateId(): string {
 function debouncedSave() {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(async () => {
-    await api.saveState(state.value)
+    await api.saveTemplates(state.value)
   }, 500)
 }
 
@@ -161,7 +167,7 @@ async function createNewTemplate() {
     fields: [],
   }
   state.value.templates.push(newTemplate)
-  await api.saveState(state.value)
+  await api.saveTemplates(state.value)
   selectTemplate(newTemplate)
 }
 
@@ -177,7 +183,7 @@ async function deleteCurrentTemplate() {
   }
   currentTemplateId.value = state.value.templates[0]?.id ?? null
   state.value.activeTemplateId = currentTemplateId.value
-  await api.saveState(state.value)
+  await api.saveTemplates(state.value)
   if (currentTemplateId.value) {
     selectTemplate(state.value.templates.find(t => t.id === currentTemplateId.value)!)
   } else {
@@ -235,7 +241,7 @@ async function importTemplate() {
     return exists ? { ...template, id: generateTemplateId() } : template
   })
   state.value.templates.push(...newTemplates)
-  await api.saveState(state.value)
+  await api.saveTemplates(state.value)
   selectTemplate(newTemplates[0])
   importText.value = ''
   importStatus.value = newTemplates.length === 1 ? 'Template imported.' : 'Templates imported.'
@@ -245,7 +251,7 @@ async function toggleTheme() {
   const nextTheme = state.value.theme === 'dark' ? 'light' : 'dark'
   state.value.theme = nextTheme
   applyTheme(nextTheme)
-  await api.saveState(state.value)
+  await api.saveTemplates(state.value)
 }
 
 function applyTheme(theme: string) {
@@ -297,17 +303,8 @@ function onBlockInput(key: string, value: string) {
 
 // ── Init ──
 onMounted(async () => {
-  const loaded = await api.listTemplates()
-
-  // If the store is empty (first run), populate with defaults
-  if (!loaded.templates || loaded.templates.length === 0) {
-    loaded.templates = [...DEFAULT_TEMPLATES]
-    loaded.theme = loaded.theme || 'light'
-    loaded.templateInputValues = loaded.templateInputValues || {}
-    loaded.activeTemplateId = loaded.activeTemplateId || null
-    loaded.pinnedTemplatesByHost = loaded.pinnedTemplatesByHost || {}
-    await api.saveState(loaded)
-  }
+  // Main process handles defaults: returns saved data or defaults if no file/corrupt
+  const loaded = await api.loadTemplates()
 
   state.value = loaded
   applyTheme(loaded.theme || 'light')
@@ -322,12 +319,15 @@ onMounted(async () => {
     const template = loaded.templates.find((t: Template) => t.id === firstId)!
     selectTemplate(template)
   }
+
+  loading.value = false
 })
 </script>
 
 <template>
   <main class="app">
-    <section class="layout-shell">
+    <div v-if="loading" class="app-loading-state">Loading templates...</div>
+    <section v-else class="layout-shell">
       <header class="app__header">
         <h1>PromptTemplates</h1>
         <button class="button button--ghost" type="button" @click="toggleTheme">
