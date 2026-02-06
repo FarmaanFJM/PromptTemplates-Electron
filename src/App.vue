@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import type { Template, AppState } from './shared/defaults'
-import { DEFAULT_STATE } from './shared/defaults'
+import { DEFAULT_STATE, DEFAULT_TEMPLATES } from './shared/defaults'
 import { renderTemplate, extractOverviewTokens, validateTemplateImportPayload } from './shared/templating'
 
 const api = window.electronAPI
@@ -301,8 +301,7 @@ onMounted(async () => {
 
   // If the store is empty (first run), populate with defaults
   if (!loaded.templates || loaded.templates.length === 0) {
-    const { DEFAULT_TEMPLATES } = await import('./shared/defaults')
-    loaded.templates = DEFAULT_TEMPLATES
+    loaded.templates = [...DEFAULT_TEMPLATES]
     loaded.theme = loaded.theme || 'light'
     loaded.templateInputValues = loaded.templateInputValues || {}
     loaded.activeTemplateId = loaded.activeTemplateId || null
