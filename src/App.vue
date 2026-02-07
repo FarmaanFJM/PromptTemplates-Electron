@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { Template, AppState } from './shared/defaults'
 import { renderTemplate, extractOverviewTokens, validateTemplateImportPayload } from './shared/templating'
 
@@ -24,6 +24,7 @@ const importText = ref('')
 const importStatus = ref('')
 let statusTimeout: ReturnType<typeof setTimeout> | null = null
 let saveTimer: ReturnType<typeof setTimeout> | null = null
+let stateReady = false
 
 const SHARE_PREFIX = 'prompttemplate://'
 const MAX_IMPORT_CHARS = 100 * 1024
@@ -93,6 +94,7 @@ function generateTemplateId(): string {
 }
 
 function debouncedSave() {
+  if (!stateReady) return
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(async () => {
     await api.saveTemplates(state.value)
@@ -309,6 +311,11 @@ onMounted(async () => {
   state.value = loaded
   applyTheme(loaded.theme || 'light')
 
+  // Allow saves only after disk state has been loaded into the reactive tree.
+  // Before this point debouncedSave() is a no-op, so the initial empty
+  // { templates: [] } can never be flushed to disk.
+  stateReady = true
+
   const savedActiveId = loaded.activeTemplateId
   const savedTemplate = savedActiveId
     ? loaded.templates.find((t: Template) => t.id === savedActiveId)
@@ -321,6 +328,10 @@ onMounted(async () => {
   }
 
   loading.value = false
+})
+
+onBeforeUnmount(() => {
+  if (saveTimer) clearTimeout(saveTimer)
 })
 </script>
 
