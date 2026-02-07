@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, toRaw, onMounted, onBeforeUnmount } from 'vue'
 import type { Template, AppState } from './shared/defaults'
 import { renderTemplate, extractOverviewTokens, validateTemplateImportPayload } from './shared/templating'
 
@@ -93,11 +93,15 @@ function generateTemplateId(): string {
   return `${base}-${index}`
 }
 
+function plainState(): AppState {
+  return JSON.parse(JSON.stringify(toRaw(state.value)))
+}
+
 function debouncedSave() {
   if (!stateReady) return
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(async () => {
-    await api.saveTemplates(state.value)
+    await api.saveTemplates(plainState())
   }, 500)
 }
 
@@ -169,7 +173,7 @@ async function createNewTemplate() {
     fields: [],
   }
   state.value.templates.push(newTemplate)
-  await api.saveTemplates(state.value)
+  await api.saveTemplates(plainState())
   selectTemplate(newTemplate)
 }
 
@@ -185,7 +189,7 @@ async function deleteCurrentTemplate() {
   }
   currentTemplateId.value = state.value.templates[0]?.id ?? null
   state.value.activeTemplateId = currentTemplateId.value
-  await api.saveTemplates(state.value)
+  await api.saveTemplates(plainState())
   if (currentTemplateId.value) {
     selectTemplate(state.value.templates.find(t => t.id === currentTemplateId.value)!)
   } else {
@@ -243,7 +247,7 @@ async function importTemplate() {
     return exists ? { ...template, id: generateTemplateId() } : template
   })
   state.value.templates.push(...newTemplates)
-  await api.saveTemplates(state.value)
+  await api.saveTemplates(plainState())
   selectTemplate(newTemplates[0])
   importText.value = ''
   importStatus.value = newTemplates.length === 1 ? 'Template imported.' : 'Templates imported.'
@@ -253,7 +257,7 @@ async function toggleTheme() {
   const nextTheme = state.value.theme === 'dark' ? 'light' : 'dark'
   state.value.theme = nextTheme
   applyTheme(nextTheme)
-  await api.saveTemplates(state.value)
+  await api.saveTemplates(plainState())
 }
 
 function applyTheme(theme: string) {
